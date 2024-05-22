@@ -66,18 +66,18 @@ const Dashboard = () => {
     console.log("Total amount for the current month: $", totalAmount);
     localStorage.setItem("totalAmountCurrentMonth", totalAmount);
   };
-
   const fetchData = async () => {
     try {
       const q = query(collection(db, "payments"), orderBy("postDate", "desc"));
       const querySnapshot = await getDocs(q);
       setLoading(false);
       const transactionsData = [];
-      let index = 1;
+      let index = querySnapshot.size;
+
       querySnapshot.forEach((doc) => {
         const transaction = {
           docId: doc.id,
-          id: index.toString().padStart(3, "0"),
+          id: index.toString().padStart(3, "0"), // Assign descending numbers
           status: doc.data().status,
           dateTime: doc.data().postDate.toDate().toLocaleString(),
           number: doc.data().phoneNumber,
@@ -85,7 +85,7 @@ const Dashboard = () => {
           price: doc.data().amountToPay,
         };
         transactionsData.push(transaction);
-        index++;
+        index--; // Decrement index for the next transaction
       });
       setTransactions(transactionsData);
 
