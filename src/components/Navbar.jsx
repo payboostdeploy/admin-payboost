@@ -2,7 +2,7 @@ import Hamburger from "hamburger-react";
 import { useState } from "react";
 import { auth } from ".././config/firebaseconfig.js";
 import { signOut } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Logo from "../assets/logo.png";
 import Swal from "sweetalert2";
 
@@ -27,15 +27,35 @@ const Navbar = () => {
   return (
     <div className="navbar border-b w-full border-slate-600	">
       <div className="flex-1 ml-5">
-        <img src={Logo} className="w-20" alt="" />
+        <Link to="/dashboard">
+          <img src={Logo} className="w-20" alt="" />
+        </Link>
       </div>
-      <div className="flex-none font-bold space-x-6 mr-10 hidden sm:block">
-        <button
-          onClick={handleLogout}
-          className="hover:text-purple-300 text-lg font-normal"
-        >
-          Logout
-        </button>
+      <div>
+        <div className="flex-none font-bold space-x-6 mr-10 hidden sm:block">
+          <Link to="/transactions">
+            <button
+              className="hover:text-purple-300 text-lg font-normal"
+            >
+              All Transaction
+            </button>
+          </Link>
+          <Link to="/dashboard">
+            <button
+              className="hover:text-purple-300 text-lg font-normal"
+            >
+              Home
+            </button>
+          </Link>
+        </div>
+        <div className="flex-none font-bold space-x-6 mr-10 hidden sm:block">
+          <button
+            onClick={handleLogout}
+            className="hover:text-red-300 text-lg font-normal"
+          >
+            Logout
+          </button>
+        </div>
       </div>
       <label className="swap swap-rotate mr-5">
         <input type="checkbox" className="theme-controller" value="cupcake" />

@@ -117,81 +117,54 @@ const Dashboard = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
   const handleStatusUpdate = async (e) => {
     e.preventDefault();
-    if (newStatus !== "" && selectedTransaction.docId) {
-      try {
-        const transactionRef = doc(db, "payments", selectedTransaction.docId);
-        await updateDoc(transactionRef, { status: newStatus });
-        await Swal.fire({
-          position: "center",
-          icon: "success",
-          title: "Status updated",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-
-        const updatedTransactions = transactions.map((transaction) => {
-          if (transaction.docId === selectedTransaction.docId) {
-            return { ...transaction, status: newStatus };
-          }
-          return transaction;
-        });
-        setTransactions(updatedTransactions);
-        setModalOpen(false);
-
-        calculateAndUpdateTotalAmount(updatedTransactions);
-      } catch (error) {
-        console.error("Error updating status:", error);
-        await Swal.fire({
-          position: "center",
-          icon: "error",
-          title: "An error occurred",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      }
-    } else {
-      console.log("Please select a new status.");
+    if (newStatus === "" && newNote === "") {
+      console.log("Please select a new status or enter a note.");
+      return;
     }
-  };
 
-  const handleNoteSubmit = async (e) => {
-    e.preventDefault();
-    if (newNote !== "" && selectedTransaction.docId) {
-      try {
-        const transactionRef = doc(db, "payments", selectedTransaction.docId);
+    try {
+      const transactionRef = doc(db, "payments", selectedTransaction.docId);
+
+      if (newStatus !== "") {
+        await updateDoc(transactionRef, { status: newStatus });
+      }
+
+      if (newNote !== "") {
         const updatedNotes = [...(selectedTransaction.notes || []), newNote];
         await updateDoc(transactionRef, { notes: updatedNotes });
-        await Swal.fire({
-          position: "center",
-          icon: "success",
-          title: "Note added",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-
-        const updatedTransactions = transactions.map((transaction) => {
-          if (transaction.docId === selectedTransaction.docId) {
-            return { ...transaction, notes: updatedNotes };
-          }
-          return transaction;
-        });
-        setTransactions(updatedTransactions);
-        setNewNote("");
-      } catch (error) {
-        console.error("Error adding note:", error);
-        await Swal.fire({
-          position: "center",
-          icon: "error",
-          title: "An error occurred",
-          showConfirmButton: false,
-          timer: 1500,
-        });
       }
-    } else {
-      console.log("Please enter a note.");
+
+      await Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "Transaction updated",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+
+      const updatedTransactions = transactions.map((transaction) => {
+        if (transaction.docId === selectedTransaction.docId) {
+          return { ...transaction, status: newStatus !== "" ? newStatus : transaction.status, notes: newNote !== "" ? [...transaction.notes, newNote] : transaction.notes };
+        }
+        return transaction;
+      });
+      setTransactions(updatedTransactions);
+      setModalOpen(false);
+      setNewNote("");
+      setNewStatus("");
+
+      calculateAndUpdateTotalAmount(updatedTransactions);
+    } catch (error) {
+      console.error("Error updating transaction:", error);
+      await Swal.fire({
+        position: "center",
+        icon: "error",
+        title: "An error occurred",
+        showConfirmButton: false,
+        timer: 1500,
+      });
     }
   };
 
@@ -321,10 +294,9 @@ const Dashboard = () => {
     <>
       <Navbar />
       <div className="flex flex-col sm:flex-row min-h-screen">
-        <Sidebar />
         <div className="flex-1 p-6">
           <div className="overflow-x-auto">
-            <div className="flex space-x-3 mb-4">
+            <div className="flex space-x-3 items-center mb-4">
 
               <div className="mb-4">
                 <label htmlFor="filter" className="mr-2">
@@ -378,12 +350,10 @@ const Dashboard = () => {
                   className="border border-gray-300 rounded px-2 py-1"
                 />
               </div>
-              <div className=" justify-center  items-center">
-                <button onClick={handleDeleteSelected} className="btn bg-base-300 hover:bg-red-600 btn-danger">
-                  Delete Selected
-                </button>
-                <button onClick={downloadCSV} className="btn bg-base-300 hover:bg-blue-600 btn-danger">Download CSV</button>
-              </div>
+              <button onClick={handleDeleteSelected} className="btn bg-base-300 hover:bg-red-600 btn-danger">
+                Delete Selected
+              </button>
+              <button onClick={downloadCSV} className="btn bg-base-300 hover:bg-blue-600 btn-danger">Download CSV</button>
 
             </div>
             <div className="table-container">
@@ -429,6 +399,7 @@ const Dashboard = () => {
                           className="cursor-pointer p-4 border-b underline"
                         >
                           {transaction.id}
+                          <span className="ml-6">{transaction.transactionId}</span>
                         </td>
                         <td
                           className={`p-4 border-b ${transaction.status === "Rejected"
@@ -474,10 +445,9 @@ const Dashboard = () => {
               Next
             </button>
           </div>
-        </div>
-        {modalOpen && (
+        </div>{modalOpen && (
           <div className="fixed z-10 inset-0 overflow-y-auto flex justify-center items-center bg-black bg-opacity-50">
-            <div className="rounded-lg p-8 max-w-md">
+            <div className="rounded-lg p-8 max-w-2xl w-full">
               {selectedTransaction && (
                 <div className="modal-box rounded-lg p-8 max-w-2xl w-full mx-auto my-12 md:my-0 md:mr-12 md:ml-auto border border-gray-300">
                   <h2 className="text-xl text-center font-semibold mb-4">Transaction Details</h2>
@@ -490,7 +460,7 @@ const Dashboard = () => {
                         <div className="border-b border-gray-300 mb-2 pb-2">
                           <strong>Status:</strong>
                         </div>
-                        <div className="border-b border-gray-300 mb-2 p-3 pb-6">
+                        <div className="border-b border-gray-300 mb-2 pb-2">
                           <strong>Date & Time:</strong>
                         </div>
                         <div className="border-b border-gray-300 mb-2 pb-2">
@@ -516,13 +486,13 @@ const Dashboard = () => {
                         <div className="border-b border-gray-300 mb-2 pb-2">${selectedTransaction.price}</div>
                       </div>
                     </div>
+                    <label htmlFor="status" className="mr-2">New Status:</label>
                     <div className="flex justify-center mt-4">
-                      <label htmlFor="status" className="mr-2">New Status:</label>
                       <select
                         id="status"
                         value={newStatus}
                         onChange={handleStatusChange}
-                        className="border border-gray-300 rounded px-2 py-1"
+                        className="border w-full border-gray-300 rounded px-2 py-1"
                       >
                         <option value="">Select Status</option>
                         <option value="Rejected">Rejected</option>
@@ -530,23 +500,19 @@ const Dashboard = () => {
                         <option value="Completed">Completed</option>
                       </select>
                     </div>
-                    <button type="submit" className="btn btn-primary mt-4">Update Status</button>
-                  </form>
-                  <form onSubmit={handleNoteSubmit}>
                     <div className="flex flex-col mt-4">
-                      <label htmlFor="note" className="mr-2">Add Note:</label>
+                      <label htmlFor="note" className="mr-2">Add Note (optional):</label>
                       <textarea
                         id="note"
-                        value={newNote}
                         onChange={handleNoteChange}
                         className="border border-gray-300 rounded px-2 py-1"
                       />
-                      <button type="submit" className="btn btn-primary mt-4">Add Note</button>
                     </div>
+                    <button type="submit" className="btn w-full btn-primary mt-4">Update Status</button>
                   </form>
                   <button
                     onClick={() => setModalOpen(false)}
-                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    className="btn btn-sm  btn-circle btn-ghost absolute right-2 top-2"
                   >
                     ✕
                   </button>
@@ -565,7 +531,8 @@ const Dashboard = () => {
             </div>
           </div>
         )}
-      </div>
+
+      </div >
     </>
   );
 };
