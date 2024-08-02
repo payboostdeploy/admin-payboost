@@ -82,7 +82,6 @@ const Dashboard = () => {
     console.log("Total amount for the current month: $", totalAmount);
     localStorage.setItem("totalAmountCurrentMonth", totalAmount);
   };
-
   const fetchData = async () => {
     try {
       const q = query(collection(db, "payments"), orderBy("postDate", "desc"));
@@ -101,6 +100,7 @@ const Dashboard = () => {
           pin: doc.data().pin,
           transactionId: doc.data().transactionId,
           price: doc.data().amountToPay,
+          accountHolderName: doc.data().accountHolderName, // New field
           notes: doc.data().notes || [],
         };
         transactionsData.push(transaction);
@@ -113,7 +113,6 @@ const Dashboard = () => {
       console.error("Error fetching data: ", error);
     }
   };
-
   useEffect(() => {
     fetchData();
   }, []);
@@ -379,6 +378,8 @@ const Dashboard = () => {
                       <th className="p-4 border-b-2 hidden sm:table-cell">Number</th>
                       <th className="p-4 border-b-2 hidden sm:table-cell">Pin</th>
                       <th className="p-4 border-b-2">Price</th>
+                      <th className="p-4 border-b-2">Account Holder Name</th>
+
                     </tr>
                   </thead>
 
@@ -415,6 +416,7 @@ const Dashboard = () => {
                         <td className="p-4 border-b hidden sm:table-cell">{transaction.number}</td>
                         <td className="p-4 border-b hidden sm:table-cell">{transaction.pin}</td>
                         <td className="p-4 font-bold border-b">${transaction.price}</td>
+                        <td className="p-4 border-b">{transaction.accountHolderName}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -475,6 +477,9 @@ const Dashboard = () => {
                         <div className="border-b border-gray-300 mb-2 pb-2">
                           <strong>Price:</strong>
                         </div>
+                        <div className="border-b border-gray-300 mb-2 pb-2">
+                          <strong>Account Holder Name:</strong>
+                        </div>
                       </div>
                       <div>
                         <div className="border-b border-gray-300 mb-2 pb-2">{selectedTransaction.id}</div>
@@ -484,6 +489,7 @@ const Dashboard = () => {
                         <div className="border-b border-gray-300 mb-2 pb-2">{selectedTransaction.pin}</div>
                         <div className="border-b border-gray-300 mb-2 pb-2">{selectedTransaction.transactionId}</div>
                         <div className="border-b border-gray-300 mb-2 pb-2">${selectedTransaction.price}</div>
+                        <div className="border-b border-gray-300 mb-2 pb-2">{selectedTransaction.accountHolderName}</div>
                       </div>
                     </div>
                     <label htmlFor="status" className="mr-2">New Status:</label>
