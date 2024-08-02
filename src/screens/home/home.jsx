@@ -260,6 +260,7 @@ const Dashboard = () => {
       "Number": transaction.number,
       "Pin": transaction.pin,
       "Price": transaction.price,
+      "Account Holder Name": transaction.accountHolderName, // New field
       "Notes": transaction.notes.join(", "),
     }));
     const csv = Papa.unparse(csvData, {
@@ -275,6 +276,7 @@ const Dashboard = () => {
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     saveAs(blob, "transactions.csv");
   };
+
 
   const indexOfLastTransaction = currentPage * transactionsPerPage;
   const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
